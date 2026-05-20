@@ -1,0 +1,248 @@
+expt 1
+
+        AREA ADDITION, CODE, READONLY
+        ENTRY
+        EXPORT __main
+
+__main
+
+        MOV     r0, #10     ; Counter
+        MOV     r1, #0      ; Sum
+        MOV     r2, #1      ; Current number
+
+NEXT
+        ADD     r1, r1, r2  ; r1 = r1 + r2
+        ADD     r2, r2, #1  ; r2 = r2 + 1
+        SUBS    r0, r0, #1  ; decrement counter
+        BNE     NEXT        ; repeat until r0 = 0
+
+STOP
+        NOP
+
+        END
+
+2. Write an Assembly Language Program (ALP) to i) Multiply two 16-bit 
+numbers. 
+ii) Add two 32-bit numbers. 
+i) Multiply two 16-bit numbers. 
+;/* PROGRAM TO MULTIPLY TWO 16BIT NUMBERS */ 
+ 
+;/* VALUE1: 0x1234 (IN R1) */ 
+;/* VALUE2: 0x1234 (IN R2) */ 
+;/* RESULT: 0x14B5A90 (IN R3) */ 
+ 
+AREA MULTIPLY, CODE, READONLY 
+ ENTRY ; Mark first instruction to execute 
+EXPORT __main 
+ _main 
+LDR r1, =0x1234 ; Store first number in r0 
+LDR r2, =0x1234 ; Store second number in r1 
+MUL r3, r1, r2 ; Multiplication 
+ L1 B L1 ; Infinite loop to stop the execution 
+NOP 
+END ; Mark end of file 
+ 
+Result:    
+ 
+ 
+2. Write an Assembly Language Program (ALP) to 
+ii) Add two 32-bit numbers. 
+;/* PROGRAM TO ADD TWO 32BIT NUMBERS */ 
+;/* VALUE1: 0x12341234 (IN R1) */ 
+;/* VALUE2: 0x12341234 (IN R2) */ 
+;/* RESULT: 0x24682468 (IN R3) */ 
+ 
+AREA ADDITION, CODE, READONLY 
+ ENTRY ; Mark first instruction to execute  
+ EXPORT  main 
+ main 
+    LDR r1, =0x12341234 ; Store first number in r0 
+                 LDR r2, =0x12341234 ; Store second number in r1  
+                   ADD r3, r1, r2 ;      Addition 
+                 L1 B L1                                                   ; Infinite loop to stop the execution  
+                  NOP 
+                   END 
+
+3. Write a program to find the factorial of a number. 
+AREA FACT, CODE, READONLY 
+ENTRY; Mark first instruction to execute  
+EXPORT main 
+main 
+MOV r0, #5 
+MOV r1, #1 
+CMP r0, #0 
+BEQ STOP 
+MOV r1, r0 
+NEXT SUBS r0,#1 
+CMP r0, #0 
+BEQ STOP 
+MUL r2,r1,r0 
+MOV r1,r2 
+B NEXT 
+STOP  
+NOP 
+END 
+
+4. Write a program to add an array of 16-bit numbers and store the 32-bit 
+result in internal RAM 
+ 
+ 
+AREA ADDITION, CODE, READONLY 
+  ENTRY    ; Mark first instruction to execute  
+  EXPORT __main 
+ 
+__main 
+  LDR R0, =ARRAY 
+  MOV R1, #0 
+  MOV R4, #0 
+NEXT     CMP R1, #6 
+  BEQ STORE 
+  LDRH R3, [R0], #2 
+  ADC R4, R4, R3 
+  ADD R1, R1, #1 
+  B NEXT 
+STORE    LDR R5, =SUM 
+  STR R4, [R5] 
+STOP      B STOP 
+ARRAY    DCW 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006 
+  AREA RESULT, DATA, READWRITE 
+SUM       DCD 0 
+  END 
+
+
+5. Write a program to find the square of a number (1 to 10) using look-up table. 
+ 
+AREA SQUARE, CODE, READONLY 
+  ENTRY   ; Mark first instruction to execute  
+  EXPORT __main 
+__main    ; Mark first instruction to execute  
+  LDR R0, = TABLE1 ; Load start address of Lookup table  
+  LDR R1, = 6  ; Load no whose square is to be find 
+  MOV R1, R1, LSL#0x2 ; Generate address corresponding to square of given no 
+  ADD R0, R0, R1; Load address of element in Lookup table  
+  LDR R3, [R0]  ; Get square of given no in R3 
+  NOP    ; Lookup table contains Squares of no’s from 0 to 10  
+ 
+TABLE1  DCD 0X00000000 ; SQUARE OF 0=0 
+  DCD 0X00000001 ; SQUARE OF 1=1 
+  DCD 0X00000004 ; SQUARE OF 2=4 
+  DCD 0X00000009 ; SQUARE OF 3=9 
+  DCD 0X00000010 ; SQUARE OF 4=16 
+  DCD 0X00000019 ; SQUARE OF 5=25 
+  DCD 0X00000024 ; SQUARE OF 6=36 
+  DCD 0X00000031 ; SQUARE OF 7=49 
+  DCD 0X00000040 ; SQUARE OF 8=64 
+  DCD 0X00000051 ; SQUARE OF 9=81 
+  DCD 0X00000064 ; SQUARE OF 10=100 
+  END 
+
+
+6. Write a program to find the largest/smallest number in an array of 32bit 
+numbers (N=7) 
+ 
+AREA LARGEST, CODE, READONLY 
+  ENTRY   ; Mark first instruction to execute  
+  EXPORT __main 
+__main    ; Mark first instruction to execute  
+  MOV R5, #6  ; INTIALISE COUNTER TO 6(i.e. N=7) 
+  LDR R1, =VALUE1 ; LOADS THE ADDRESS OF FIRST VALUE  
+  LDR R2, [R1], #4 ; WORD ALIGN T0 ARRAY ELEMENT 
+  
+LOOP     LDR R4, [R1], #4 ; WORD ALIGN T0 ARRAY ELEMENT  
+  CMP R2, R4  ; COMPARE NUMBERS 
+  BHI LOOP1  ; IF THE FIRST NUMBER IS > THEN GOTO LOOP1  
+  MOV R2, R4     ; IF THE FIRST NUMBER IS < THEN MOVE CONTENT R4 TO R2 
+ 
+LOOP1  SUBS R5, R5, #1 ; DECREMENT COUNTER 
+  CMP R5, #0  ; COMPARE COUNTER TO 0 
+  BNE LOOP  ; LOOP BACK TILL ARRAY ENDS  
+  LDR R4, =RESULT ; LOADS THE ADDRESS OF RESULT  
+  STR R2, [R4]  ; STORES THE RESULT IN R1 
+  NOP  
+  NOP 
+  NOP   ; ARRAY OF 32-BIT NUMBERS (N=7) 
+ 
+VALUE1  
+  DCD 0X44444444  
+  DCD 0X22222222  
+  DCD 0X11111111  
+  DCD 0X33333333  
+  DCD 0XAAAAAAAA  
+  DCD 0X88888888  
+  DCD 0X99999999 
+ 
+ AREA DATA2, DATA, READWRITE  ; TO STORE RESULT IN GIVEN ADDRESS  
+RESULT DCD 0X0 
+  END
+
+7. Write a program to arrange a series of 32-bit numbers in 
+ascending/descending order. 
+ 
+AREA ASCENDING , CODE, READONLY 
+  ENTRY     ; Mark first instruction to execute  
+  EXPORT __main 
+__main      ; Mark first instruction to execute  
+  MOV R8,#4    ; INTIALISE COUNTER TO 4(i.e. N=4)  
+  LDR R2,=CVALUE   ; ADDRESS OF CODE REGION 
+  LDR R3,=DVALUE   ; ADDRESS OF DATA REGION 
+LOOP0   LDR R1,[R2],#4  ; LOADING VALUES FROM CODE REGION  
+  STR R1,[R3],#4   ; STORING VALUES TO DATA REGION  
+  SUBS R8,R8,#1    ; DECREMENT COUNTER 
+  CMP R8,#0    ; COMPARE COUNTER TO 0 
+  BNE LOOP0    ; LOOP BACK TILL ARRAY ENDS  
+START1 MOV R5,#3   ; INTIALISE COUNTER TO 3(i.e. N=4) 
+  MOV R7,#0  ; FLAG TO DENOTE EXCHANGE HAS OCCURED  
+  LDR R1,=DVALUE  ; LOADS THE ADDRESS OF FIRST VALUE 
+LOOP1   LDR R2,[R1],#4   ; WORD ALIGN T0 ARRAY ELEMENT  
+  LDR R3,[R1]    ; LOAD SECOND NUMBER 
+  CMP R2,R3    ; COMPARE NUMBERS 
+  BLT LOOP2  ; IF THE FIRST NUMBER IS < THEN GOTO LOOP2  
+  STR R2,[R1],#-4   ; INTERCHANGE NUMBER R2 & R3 
+  STR R3,[R1]    ; INTERCHANGE NUMBER R2 & R3 
+  MOV R7,#1  ; FLAG DENOTING EXCHANGE HAS TAKEN PLACE 
+  ADD R1,#4    ; RESTORE THE PTR 
+LOOP2   SUBS R5,R5,#1    ; DECREMENT COUNTER 
+  CMP R5,#0    ; COMPARE COUNTER TO 0 
+  BNE LOOP1    ; LOOP BACK TILL ARRAY ENDS 
+  CMP R7,#0    ; COMPARING FLAG 
+  BNE START1   ; IF FLAG IS NOT ZERO THEN GO TO START1  
+  NOP 
+  NOP  
+  NOP   ; ARRAY OF 32 BIT NUMBERS(N=4) IN CODE REGION 
+CVALUE 
+  DCD 0X44444444 ;  
+  DCD 0X11111111 ;  
+  DCD 0X33333333 ;  
+  DCD 0X22222222 ; 
+AREA DATA1, DATA, READWRITE    ; ARRAY OF 32 BIT NUMBERS IN DATA REGION 
+DVALUE 
+  DCD 0X00000000 ; 
+  END 
+
+8. Write a program to count the number of ones and zeros in two 
+consecutive memory locations. 
+ 
+AREA SEARCH1, CODE, READONLY 
+  ENTRY   ; Mark first instruction to execute  
+  EXPORT __main 
+__main    ; Mark first instruction to execute  
+  MOV r5,#2 
+  MOV r0,#0  
+  MOV r1,#0 
+  LDR r2, VALUE1 
+SECOND MOV r3, #32 
+NEXT  MOVS r2,r2,ror #1  
+  BLO ZERO 
+  ADD r1,#1  
+  B LAST 
+ZERO  ADD r0,#1 
+LAST  SUBS r3,#1 
+  BNE NEXT  ; Branch to the loop if not equal to Zero  
+  LDR r2, VALUE2 
+  SUBS r5,#1  
+  BNE SECOND 
+STOP B STOP 
+  NOP 
+VALUE1  DCD 0X1234567A ; GIVEN FIRST NUMBER IN MEMORY  
+VALUE2  DCD 0X1234567A ; GIVEN SECOND NUMBER IN MEMORY 
+  END
