@@ -1,0 +1,320 @@
+Expt1
+Verilog code:
+Source Code – fa.v:
+module full_adder( A, B, CIN, S, COUT ); 
+input A, B, CIN;
+output S, COUT;
+assign S = A ^ B ^ CIN; // Sum calculation
+assign COUT = (A & B) | (CIN & (A ^ B)); // Carry-out calculation 
+endmodule
+Source Code – fa_4bit.v:
+module four_bit_adder(A, B, C0, S, C4);
+input [3:0] A, B; // Inputs A and B are 4-bit each 
+input C0; // Carry-in (single bit)
+output [3:0] S; // 4-bit sum output 
+output C4; // Carry-out (single bit)
+wire C1, C2, C3; // Intermediate carry wires
+// Instantiating full adders for each bit position 
+full_adder fa0 (A[0], B[0], C0, S[0], C1);
+full_adder fa1 (A[1], B[1], C1, S[1], C2);
+full_adder fa2 (A[2], B[2], C2, S[2], C3);
+full_adder fa3 (A[3], B[3], C3, S[3], C4);
+endmodule
+
+Testbench Code:
+Test Bench – fa_test.v:
+module test_4_bit;
+reg [3:0] A, B; // 4-bit inputs
+reg C0; // Single-bit carry-in 
+wire [3:0] S; // 4-bit sum output 
+wire C4; // Single-bit carry-out
+// Instantiate the 4-bit adder module 
+four_bit_adder dut (A, B, C0, S, C4);
+// Teststimulus 
+initial begin
+$monitor("Time=%0t | A=%b B=%b C0=%b | S=%b C4=%b", $time, A, 
+B, C0, S, C4);
+A = 4'b0011; B = 4'b0011; C0 = 1'b0; #10; // 3 + 3 + 0 = 6 (0110)
+A = 4'b1011; B = 4'b0111; C0 = 1'b1; #10; // 11 + 7 + 1 = 19 (10011)
+A = 4'b1111; B = 4'b1111; C0 = 1'b1; #10; // 15 + 15 + 1 = 31 (11111)
+#20 $finish; // End simulation 
+end
+endmodule
+
+
+Expt2
+
+Verilog Code
+module shift_add_multiplier (
+input [3:0] a, // 4-bit multiplicand 
+input [3:0] b, // 4-bit multiplier 
+output [7:0] product
+);
+// Internal registers 
+reg [7:0] prod_reg;
+reg [3:0] count;
+// On each clock cycle, we check one bit of b and add/shift
+// This example uses a simple sequential approach with a for-loop.
+integer i;
+always @* begin
+// Initialize the product register 
+prod_reg = 8'b0;
+// Loop through each bit of b 
+for (i = 0; i < 4; i = i + 1) begin
+// If the current bit of b is 1, add the partial product 
+if (b[i] == 1'b1) begin
+// Shift a by i bits to the left and add 
+prod_reg = prod_reg + (a << i);
+end 
+end
+end
+assign product = prod_reg; 
+endmodule
+
+Testbench Code:
+`timescale 1ns/1ps // Define time unit and precision 
+module tb_shift_add_multiplier;
+// Testbench signals 
+reg [3:0] a_tb;
+reg [3:0] b_tb;
+wire [7:0] product_tb;
+// Instantiate the design under test (DUT) 
+shift_add_multiplier dut (
+.a(a_tb),
+.b(b_tb),
+.product(product_tb)
+);
+initial begin
+// Display header
+$display("Time\t a\t b\t | product (Binary) | Product (Decimal)");
+$display(" ");
+// Test cases
+a_tb = 4'b0000; b_tb = 4'b0000; #10;
+$display("%0dns:\t %b\t %b\t | %b\t | %0d", $time, a_tb, b_tb, product_tb, product_tb);
+a_tb = 4'b0001; b_tb = 4'b0001; #10;
+$display("%0dns:\t %b\t %b\t | %b\t | %0d", $time, a_tb, b_tb, product_tb, product_tb);
+a_tb = 4'b0010; b_tb = 4'b0011; #10;
+$display("%0dns:\t %b\t %b\t | %b\t | %0d", $time, a_tb, b_tb, product_tb, product_tb);
+a_tb = 4'b1010; b_tb = 4'b0011; #10;
+$display("%0dns:\t %b\t %b\t | %b\t | %0d", $time, a_tb, b_tb, product_tb, product_tb);
+a_tb = 4'b1111; b_tb = 4'b1111; #10;
+$display("%0dns:\t %b\t %b\t | %b\t | %0d", $time, a_tb, b_tb, product_tb, product_tb);
+// End simulation 
+#10;
+$stop; 
+end
+endmodule
+
+Expt3
+
+Verilog code
+module alu_32bit_case(y,a,b,f); 
+input [31:0]a;
+input [31:0]b;
+input [2:0]f;
+output reg [31:0]y; 
+always@(*)
+begin 
+case(f)
+3'b000:y=a&b;
+3'b001:y=a|b;
+3'b010:y=~(a|b);
+3'b011:y=~(a&b); 
+3'b010:y=a+b; 
+3'b011:y=a
+-b; 
+3'b100:y=a*b; 
+default:y=32'bx; 
+endcase
+end 
+endmodule
+Testbench Code:
+module alu_32bit_tb_case; 
+reg [31:0]a;
+reg [31:0]b;
+reg [2:0]f;
+wire [31:0]y;
+alu_32bit_case test2(.y(y), .a(a), .b(b), .f(f)); 
+initial
+begin 
+a=32'h00000000; 
+b=32'hFFFFFFFF; 
+#10 f=3'b000;
+#10 f=3'b001;
+#10 f=3'b010;
+#10 f=3'b010
+;
+#10 f=3'b011;
+#10 f=3'b100;
+end 
+initial
+#50 $finish; 
+endmodule
+
+Expt4
+
+Verilog Code:
+moduleRisingEdge_DFlipFlop_SyncReset(D,clk,sync_reset,Q); 
+input D; // Data input
+input clk; // clock input
+input sync_reset; // synchronous reset 
+output reg Q; // output Q
+always @(posedge clk) 
+begin 
+if(sync_reset==1'b1)
+Q <= 1'b0;
+else
+Q <= D;
+end 
+endmodule
+Testbench Code:
+module tb_DFF(); 
+reg D;
+reg clk; 
+reg reset; 
+wire Q;
+RisingEdge_DFlipFlop_SyncReset dut(D,clk,reset,Q); 
+initial begin
+clk=0;
+forever #10 clk = ~clk; 
+end
+initial begin 
+reset=1;
+D <= 0;
+#100;
+reset=0;
+D <= 1;
+#100;
+D <= 0;
+#100;
+D <= 1;
+end 
+endmodule
+
+
+Verilog code:
+module sr_flipflop( 
+output reg q, qbar, 
+input s, r, clk
+);
+always @(posedge clk) begin 
+if (s == 1 && r == 0) begin
+q <= 1;
+qbar <= 0; 
+end
+else if (s == 0 && r == 1) begin 
+q <= 0;
+qbar <= 1; 
+end
+else if (s == 0 && r == 0) begin 
+q <= q; // Hold previous state 
+qbar <= qbar;
+end
+else if (s == 1 && r == 1) begin 
+q <= 1'bx; // Undefined state 
+qbar <= 1'bx;
+end 
+end
+endmodule
+
+Testbench Code:
+module sr_flipflop_tb; 
+reg s, r, clk;
+wire q, qbar;
+// Instantiate the SR Flip-Flop
+sr_flipflop uut (.q(q), .qbar(qbar), .s(s), .r(r), .clk(clk));
+initial begin
+// Initialize inputs 
+clk = 0; s = 0; r = 0;
+#10 s = 1; r = 0; // Set (Q = 1)
+#10 s = 0; r = 0; // Hold state 
+#10 s = 0; r = 1; // Reset (Q = 0)
+#10 s = 1; r = 1; // Invalid state (Q = X) 
+#10 s = 0; r = 0; // Hold state
+#50 $finish; // End simulation 
+end
+// Clock Generation
+always #5 clk = ~clk; // Toggle clock every 5 time units
+endmodule
+
+
+Verilog Code:
+module jkff(input reset, input clk, input j, input k, output reg q, output qnot); 
+assign qnot=~q;
+always @(posedge clk) 
+if (reset) q<=1'b0; else 
+case ({j, k})
+2'b00: q<=q;
+2'b01: q<=1'b0;
+2'b10: q<=1'b1;
+2'b11: q<=~q; 
+endcase 
+endmodule
+Testbench Code:
+module test; 
+reg clk=0; 
+reg j=0;
+reg k=0;
+reg reset=0;
+wire q, qnot;
+jkff dut(reset, clk,j,k,q,qnot);
+initial 
+begin
+#10 j=1'b0; k=1'b0;
+#10 j=1'b1; k=1'b0;
+#10 j=1'b0; k=1'b1;
+#10 j=1'b1; k=1'b1;
+#10 j=1'b1; k=1'b1; // set your JK here 
+#25 reset=1'b1;
+#25 $finish; 
+end
+always #1 clk=~clk; 
+endmodule
+
+
+Expt5
+
+module tb_mod_n_counter;
+reg clk; // Clock signal
+reg rst_n; // Asynchronous reset (active low) 
+reg [3:0] N; // Modulus value
+wire [3:0] count; // Counter output
+// Instantiate the mod_n_counter module 
+mod_n_counter uut (
+.clk(clk),
+.rst_n(rst_n),
+.N(N),
+.count(count)
+);
+// Clock generation 
+always begin
+#5 clk = ~clk; // Toggle clock every 5 time units 
+end
+// Test procedure 
+initial begin
+clk = 0; // Initialize clock 
+rst_n = 0; // Apply reset
+N = 4; // Set modulus to 4
+// Apply reset
+#10 rst_n = 1; // Release reset after 10 time units
+// Test mod 4 counter 
+#40;
+// Change modulusto 6 
+N = 6;
+#40;
+// Test mod 8 counter 
+N = 8;
+#80;
+// Test mod 10 counter 
+N = 10;
+#100;
+// End simulation
+$finish; 
+end
+// Monitor the output 
+initial begin
+$monitor("Time=%0t, clk=%b, rst_n=%b, N=%d, count=%d", $time, clk, rst_n, N, 
+count);
+end 
+endmodule
+
